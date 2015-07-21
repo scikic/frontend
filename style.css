@@ -1,0 +1,210 @@
+p {
+   // font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin: 0;
+    margin-bottom: 20px;
+    padding: 0;
+    color: #fff;
+}
+
+p.blurb {
+   // font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin: 0;
+    padding: 0;
+    font-size: 10pt;
+}
+
+h1 {
+    font-size: 15pt;
+ //  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin-left: 50px;
+    color: #fff;
+}
+
+
+h2 {
+    font-size: 14pt;
+    //font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin: 15px;
+    padding: 0;
+    color: #fff;
+}
+
+img.tile {
+  width:  auto;
+  height: 600px;
+  left: 400px;
+  position: absolute;
+  
+}
+
+div.formdata {
+ position:relative;
+ left:10px;
+ width:360px;
+}
+
+div#conversation {
+  font-family: "Lato",serif
+}
+
+div.msg { 
+color: #eee; 
+background-image: url("avatar_small.png");
+background-repeat: no-repeat;
+min-height: 40px;
+padding-left: 50px;
+margin-top: 0px;
+margin-bottom: 0px;
+}
+
+span.innermsg {
+padding-top: 5px;
+padding-left: 5px;
+display: inline-block;
+vertical-align: middle;
+}
+
+
+span.innerreply {
+padding-top: 10px;
+padding-bottom: 10px;
+padding-left: 10px;
+padding-right: 15px;
+display: inline-block;
+vertical-align: top;
+}
+
+body {
+  background: url("background.jpg") no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+div.replypic {
+color: #cdf; 
+background-repeat: no-repeat;
+background-position: right;
+margin-top: 0px;
+margin-bottom: 0px;
+display:inline-block;
+width:50px;
+height:50px;
+border-radius:50px;
+}
+
+div.reply { 
+color: #cdf; 
+background-repeat: no-repeat;
+background-position: right;
+min-height: 40px;
+//padding-right: 50px;
+padding-top: 8px;
+margin-top: 0px;
+margin-bottom: 0px;
+text-align: right;
+vertical-align: middle;
+}
+
+input { margin-left: 50px; margin-top: 15px; }
+div.page {
+    display: table;
+ width:350px; height:50%; margin-left: auto; margin-right: auto;
+}
+
+
+div.pageinner {
+  display: table-cell;
+//  vertical-align: bottom;
+  height:100px;
+}
+
+div.pageinnerinner {
+ position:absolute;
+ bottom:200px;
+// height:200px;
+ overflow:hidden;
+ vertical-align:bottom;
+ width:350px;
+}
+
+input#chatbox {
+  background: transparent;
+  color: #fff;
+}
+
+button#reply {
+  opacity: 0.5;
+}
+
+div.statement {
+  margin: 20px;
+  border: 5px solid #aaa;
+  padding: 5px;
+  color: #eee;
+  background: #444;
+  opacity: 0.7;
+}
+
+
+a:hover {
+ color: #fff;
+}
+
+a {
+ color: #ddd;
+}
+
+span.statement_title {
+ color: #fff;
+ opacity: 1.0;
+ font-weight: bold;
+}
+
+dt {
+   // font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin: 0;
+    margin-bottom: 20px;
+    padding: 0;
+    color: #fff;
+    font-weight: bold;
+}
+
+dd {
+   // font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin: 0;
+    margin-bottom: 20px;
+    padding: 0;
+    color: #fff;
+}
+
+span.footertextright {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin: 0;
+    margin-bottom: 0px;
+    padding: 0;
+    font-size: 12px;
+    color: #fff;
+}
+
+span.footertextleft {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin: 0;
+    margin-bottom: 0px;
+    padding: 0;
+    font-size: 12px;
+    color: #fff;
+}
