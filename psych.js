@@ -25,19 +25,55 @@ function recordKey(desc,key) {
 
 
 function replymsg() {
+   reply = $('input#chatbox').val()
+   $('input#chatbox').val(""); //clear the input box
+   if (reply.length>0) {
+     $('div#conversation').append('<div class="reply"><span class="innerreply">'+reply+'</span><div class="replypic"></div></div>');
+   }
+   $('span.textbox').fadeTo('slow', 0);//.hide();
+   $('div.selects').fadeTo('slow', 0); //.hide();
    timer = setInterval(add_thinking_message, 5000);
-   // $('div.loader').css("visibility","visible");
     $('div.loader').fadeTo('slow', 1);
     $.ajax({
 	method: "GET",
 	url: "index.cgi?ajax=on",
-	data: {'reply':$('input#chatbox').val(),keystrokerecord:JSON.stringify(keystrokerecord)}
+	data: {'reply':reply,keystrokerecord:JSON.stringify(keystrokerecord)}
     })
-    .done(function( msg ) {
+    .done(function( raw_msg ) {
+      data = $.parseJSON(raw_msg);
+      msg = data['message'];
+      reply = data['reply'];
+      type = data['details']['type'];
+      console.log(data)
       clearTimeout(timer);
       startKeyStrokeClock();
-      $('input#chatbox').val(""); //clear the input box
-      $('div#conversation').append(msg);
+      if (type=='none')
+      {
+        console.log('NONE');
+        $('span.textbox').fadeTo('slow', 0);//.hide();
+        $('div.selects').fadeTo('slow', 0); //.hide();
+      }
+      if (type=='text')
+      {
+        console.log('TEXT');
+        $('span.textbox').fadeTo('slow', 1); //.show();
+        $('div.selects').fadeTo('slow', 0);//.hide();
+      }
+      if (type=='select')
+      {
+        console.log('SELECT')
+        $('span.textbox').fadeTo('slow', 0); //.hide();
+        opts = data['details']['options'];
+        $('div.selects').html(''); //erase previous choices.
+        for (i=0;i<opts.length;i++) {
+          $('div.selects').append('<button class="choice">'+opts[i]+'</button>');
+        }
+        $('div.selects').fadeTo('slow', 1); //.show();
+      }
+      if (reply.length>0) {
+     //     $('div#conversation').append('<div class="reply"><span class="innerreply">'+reply+'</span><div class="replypic"></div></div>');
+      }
+      $('div#conversation').append('<div class="msg"><span class="innermsg">'+msg+'</span></div>');
       if ($('div.reply').last().attr('id')==undefined) {
         $('div.reply').last().attr('id','item'+conversation_item_id.toString());
         conversation_item_id ++;
@@ -45,15 +81,13 @@ function replymsg() {
       $('div.msg').last().attr('id','item'+(conversation_item_id).toString());
       conversation_item_id ++;
       opacity_calc();
-   //   $('div.loader').css("visibility","hidden");
       $('div.loader').fadeTo('slow', 0);
-      if (msg.indexOf("<!--query-->")>=0)
+      if (data['continues']) //if (msg.indexOf("<!--query-->")>=0)  //We now have a field to indicate that the server wants to say something else.      
       {
-   //     $('div.loader').css("visibility","visible"); //TODO Make them appear when it's having a good think.
         $('div.loader').fadeTo('slow', 1);
         replymsg(); //the server wants to say something else!
       }   
-    });
+   });
 }
 
 function add_thinking_message() {
@@ -113,6 +147,12 @@ $(document).ready(function() {
  $("#chatbox").keydown(function(event){
     recordKey('down',event.keyCode);
  });
+
+  $("div.selects").on('click','button.choice',function() {
+    msg = $(this).html();
+    $('input#chatbox').val(msg);
+    $("#reply").click();
+  });
 });
 
 

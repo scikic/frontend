@@ -1,9 +1,10 @@
 import web_helper_functions as whf
+import config
 
 def query_api(action,data):
     import requests    
     payload = {"version":1, 'data': data, 'apikey': 'YOUR_API_KEY_HERE', 'action':action}
-    r = requests.post('http://scikic.org/api/api.cgi',json=payload)
+    r = requests.post(config.apiUrl,json=payload)
     return r.content
 
 #overall method to instantiate and recover the question for user 'userid'
@@ -18,8 +19,14 @@ def get_last_question_string(con,userid):
     dataitem = data[1]
     detail = data[2]    
     data = {"dataset":data[0],"dataitem":data[1],"detail":data[2]}
-    q_string = query_api('questionstring',data)
-    return q_string
+    query_result = query_api('questionstring',data)
+    try:
+        output = json.loads(query_result)
+    except ValueError:
+        import sys
+        print >>sys.stderr, "Unable to parse JSON from "+res
+        return ('','') #not sure what to return yet if problem occurs TODO 
+    return output
 
 def do_inference(con,userid):
     cur = con.cursor()
@@ -28,7 +35,13 @@ def do_inference(con,userid):
     for it in results:
         data.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
     res = query_api('inference',data)
-    output = json.loads(res)
+    try:
+        output = json.loads(res)
+    except ValueError:
+        import sys
+        print >>sys.stderr, "Unable to parse JSON from "+res
+        return ([],[],[])
+
     features = output['features']
     insights = output['insights']
     facts = output['facts']
@@ -43,7 +56,13 @@ def pick_question(con,userid):
     for it in results:
         data.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
     res = query_api('question',data)
-    question = json.loads(res)    
+    try:
+        question = json.loads(res)
+    except ValueError:
+        import sys
+        print >>sys.stderr, "Unable to parse JSON from "+res
+        return {'dataset':None,'dataitem':None,'detail':None,'answer':None}
+
     return question
 
 def delete_users_data(con,userid):
@@ -58,6 +77,8 @@ def set_answer_to_last_question(con,userid, answer):
     cur = con.cursor()
     cur.execute("SELECT dataset, dataitem, detail FROM qa WHERE asked_last = 1 AND userid = ?;",(userid,))
     sqldata = cur.fetchone();
+    #if sqldata is None: #silently fail to set the answer
+    #    return
     cur.close()
     data = {'dataset':sqldata[0],'dataitem':sqldata[1],'detail':sqldata[2],'answer':answer}
     data = json.loads(query_api('processanswer',data))

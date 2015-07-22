@@ -37,11 +37,14 @@ def gen_main_form():
     print '<div class="page"><div class="pageinner"><div class="pageinnerinner">';
     #print '<h1>Psychoc Sally</h1>';
     print '<div id="conversation"></div>';
-    print '<input type="text" id="chatbox" size="17" autofocus />';
-
+    print '<div id="response_section">';
+    print '<div class="selects"></div>';
+    print '<span class="textbox">';
+    print '<input type="text" id="chatbox" size="27" autofocus />';
     print '<script>if (!("autofocus" in document.createElement("input"))) {document.getElementById("chatbox").focus(); }</script>'; #does autofocus for old versions of IE.
-
     print '<button id="reply">Reply</button>';
+    print '</span>'; #end of textbox
+    print '</div>'; #end of "response_section"
     print '<br />';
     print '<div class="loader"><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div></div>';
     print '</div>';
@@ -54,9 +57,12 @@ def process_ajax():
     sid,cookie = whf.get_session_id();
     print cookie
     print 'Content-Type: text/html\n'
-    print '<html><body>'
+   # print '<html><body>'
   
     msg = '';
+    reply = '';
+    continues = False;
+    question_details = {'type':'none'}
     userid = whf.get_user_id(con,sid);
     cur = con.cursor()
     cur.execute('SELECT COUNT(*) FROM qa WHERE userid=?;',(userid,));
@@ -67,7 +73,6 @@ def process_ajax():
 #user can delete the data at any point
     if ('keystrokerecord' in form):
         cur = con.cursor()
-        #print json.loads(form['keystrokerecord'].value);
         keystrokes = form['keystrokerecord'].value;
         import datetime
         dt = str(datetime.datetime.now());
@@ -76,20 +81,16 @@ def process_ajax():
         con.commit()
     if ('reply' in form):
         if form['reply'].value.upper()[0:3]=='SET':
-            print "Setting..."
             a = form['reply'].value.upper().split(',')
             if (a[1]=='NAME'):
-                print "Name..."
                 temp = '{"reply[first_name]": "%s"}' % a[2]
-                print temp
-                print userid
                 cur = con.cursor()
                 cur.execute("UPDATE qa SET answer=? WHERE userid=? AND dataset='facebook'",(temp,userid))
-                print "EXE"
                 cur.close()
                 con.commit()
-                print "Done."
-                print "Updating names to %s." % a[2]
+                msg = "Updating names to %s." % a[2]
+                response = {'message':msg,'reply':reply}
+                print json.dumps(response)
                 return
 
         if form['reply'].value.upper()=='DELETE':
@@ -100,14 +101,16 @@ def process_ajax():
     if (state==100):
         msg = "The answers you gave to us about you have been erased.";
     if (state==0):
-        msg = 'Welcome to this psychic experience (v0.1). I will ask you some questions, and, using my psychic powers (and maths) I shall predict the unpredictable!<br/></br> <!--query-->';
+        msg = 'Welcome to this psychic experience (v0.1). I will ask you some questions, and, using my psychic powers (and maths) I shall predict the unpredictable!<br/></br>'# <!--query-->';
+        continues = True
         whf.set_conversation_state(con,sid,1)
     if (state==1):
         if ('reply' in form):
             ohf.set_answer_to_last_question(con, userid, form['reply'].value);
 
-        if (data[0]>8): #12
-            msg = 'Enough questions! I shall now peer into my crystal ball of now, to find your age... (this might take me a while)<!--query-->';
+        if (data[0]>12): #12
+            msg = 'Enough questions! I shall now peer into my crystal ball of now, to find your age... (this might take me a while)' #<!--query-->';
+            continues = True
             whf.set_conversation_state(con,sid,2)
         else:
             moreQavailable = True
@@ -116,25 +119,29 @@ def process_ajax():
                 question = ohf.pick_question(con,userid);
                 if (question['dataset']!=None):
                     moreQavailable = True
-                   # print question
                     whf.add_question(con, userid, question['dataset'], question['dataitem'], question['detail']);
                 else:
                     #not found any new questions. TODO: We shouldn't really get into this situation, as we should
                     #have more questions always available. However, if we do; set conversation to state=1, to reveal what
                     #we know.
                     whf.set_conversation_state(con,sid,2)
-                    msg = "I've no more questions to ask! <!--query-->";
+                    msg = "I've no more questions to ask!";
+                    continues = True
             if moreQavailable:
-                msg = ohf.get_last_question_string(con,userid); 
+                question = ohf.get_last_question_string(con,userid); 
+                msg = question['question']
+                question_details = question
+                
     if (state==2):
         output, insights, facts = ohf.do_inference(con,userid);
         msg = '<br/>'.join(insights)
+        continues = True
         whf.set_conversation_state(con,sid,3)
-        #print facts
     if (state==3):
         if ('reply' in form):
             ans = form['reply'].value
-            msg = "%s? Interesting. <!--query-->" % ans; #TODO: SANITISE INPUT
+            msg = "%s? Interesting." % ans # <!--query-->" % ans; #TODO: SANITISE INPUT
+            continues = True
             ohf.set_answer_to_last_question(con, userid, ans);
         else:
             cur = con.cursor()
@@ -145,17 +152,21 @@ def process_ajax():
             cur.close()
             if (len(dataitems)==0):
                 whf.set_conversation_state(con,sid,4)
-                msg = "One more thing... <!--query-->";
+                msg = "One more thing..." # <!--query-->";
+                continues = True
             else:
                 if (dataitems[0]=='age'):
                     msg = "I wonder if I was correct about your age. What is your actual age (if you don't mind me asking?)";
+                    question_details = {'type':'text'}
                     whf.add_question(con, userid, 'direct', 'age', ''); 
                 if (dataitems[0]=='religion'):
                     msg = "I wonder if I was correct about your religion. What religion (or none) do you identify as?";
+                    question_details = {'type':'text'} 
                     whf.add_question(con, userid, 'direct', 'religion', ''); 
     if (state==4):
         msg = "If it's ok with you, we would like to keep these answers to improve our psychic abilities in future. We won't use your data for anything else, or pass it on to anyone else.<br/>";
-        msg+= "If you want us to delete the data, you can type 'delete' here, now, or at any time in the future. <!--query-->";
+        msg+= "If you want us to delete the data, you can type 'delete' here, now, or at any time in the future." # <!--query-->";
+        continues = True
         whf.set_conversation_state(con,sid,5)
     if (state==5):
         msg = "Thanks for helping with the psychic experiment: It's now complete. To find out more, please follow us on twitter."
@@ -163,9 +174,12 @@ def process_ajax():
     
      
     if ('reply' in form):
-        print('<div class="reply"><span class="innerreply">'+form['reply'].value+'</span><div class="replypic"></div></div>');
-    print('<div class="msg"><span class="innermsg">'+msg+'</span></div>');
-    print '</body></html>'
+        reply = form['reply'].value
+        #reply = '<div class="reply"><span class="innerreply">'+form['reply'].value+'</span><div class="replypic"></div></div>';
+   #msg = '<div class="msg"><span class="innermsg">'+msg+'</span></div>';
+
+    response = {'message':msg,'reply':reply,'continues':continues,'details':question_details}
+    print json.dumps(response)
 
 def process_facebook():
     if not whf.in_session():
