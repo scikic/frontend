@@ -27,6 +27,7 @@ function recordKey(desc,key) {
 function replymsg() {
    reply = $('input#chatbox').val()
    $('input#chatbox').val(""); //clear the input box
+   $('div.selects').html(''); //erase previous choices selection
    if (reply.length>0) {
      $('div#conversation').append('<div class="reply"><span class="innerreply">'+reply+'</span><div class="replypic"></div></div>');
    }
@@ -64,7 +65,6 @@ function replymsg() {
         console.log('SELECT')
         $('span.textbox').fadeTo('slow', 0); //.hide();
         opts = data['details']['options'];
-        $('div.selects').html(''); //erase previous choices.
         for (i=0;i<opts.length;i++) {
           $('div.selects').append('<button class="choice">'+opts[i]+'</button>');
         }

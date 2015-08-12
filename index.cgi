@@ -50,7 +50,7 @@ def gen_main_form():
     print '</div>';
     print '</div></div>';
     print '<span class="footertextright">Background image provided by <a href="https://www.flickr.com/photos/kwarz/14628848258">zeitfaenger.at</a>. Avatar image provided by <a href="http://clipartist.net/svg/emily-the-strange-emily-the-strange-awesome-rss-openclipart-org-commons-wikimedia-org/">clipartist.net</a>.</span>';
-    print '<span class="footertextleft"><a href="privacy.html">Privacy</a> | <a href="tos.html">Terms</a> | <a href="help.html">Help</a></span>';
+    print '<span class="footertextleft"><a href="privacy.html">Privacy</a> | <a href="tos.html">Terms</a> | <a href="help.html">Help</a> | <a href="account.cgi">Account</a></span>';
     print '</body></html>';
 
 def process_ajax():
@@ -108,7 +108,7 @@ def process_ajax():
         if ('reply' in form):
             ohf.set_answer_to_last_question(con, userid, form['reply'].value);
 
-        if (data[0]>12): #12
+        if (data[0]>1): #12
             msg = 'Enough questions! I shall now peer into my crystal ball of now, to find your age... (this might take me a while)' #<!--query-->';
             continues = True
             whf.set_conversation_state(con,sid,2)
@@ -165,11 +165,12 @@ def process_ajax():
                     whf.add_question(con, userid, 'direct', 'religion', ''); 
     if (state==4):
         msg = "If it's ok with you, we would like to keep these answers to improve our psychic abilities in future. We won't use your data for anything else, or pass it on to anyone else.<br/>";
-        msg+= "If you want us to delete the data, you can type 'delete' here, now, or at any time in the future." # <!--query-->";
-        continues = True
+        msg+= "If you want us to delete the data, you can type 'delete' here, now or later. Or in the future, <a href='scikic@michaeltsmith.org.uk'>contact</a> us."
+        question_details = {'type':'text'} 
         whf.set_conversation_state(con,sid,5)
     if (state==5):
         msg = "Thanks for helping with the psychic experiment: It's now complete. To find out more, please follow us on twitter."
+        question_details = {'type':'text'}
 #       msg = 'Enough questions, please visit the <a href="index.cgi?infer=on&userid=%d&feature=age">calculation</a> to see an estimate of your age. It\'s quite slow: Please be patient.' % userid;
     
      
@@ -211,14 +212,11 @@ def process_env_data():
     user_agent_info = os.environ
     whf.set_answer_to_new_question(con, userid, 'user_agent_info', 'data', '', str(user_agent_info)) #TODO optimise: Only do this if this row isn't in the database already.
 
-#import sys
-#print >>sys.stderr, form
-
-if ('ajax' in form):
-    process_ajax()
-    process_env_data()
-elif ('facebook' in form):
+process_env_data()
+if ('facebook' in form):
     process_facebook()
+elif ('ajax' in form):
+    process_ajax()
 elif ('setup' in form): #If setup is passed, then we download all the stuff the site might need.
     ohf.setupdatabase(con)
 else:

@@ -24,22 +24,24 @@ def get_last_question_string(con,userid):
         output = json.loads(query_result)
     except ValueError:
         import sys
-        print >>sys.stderr, "Unable to parse JSON from "+res
+        print >>sys.stderr, "While getting question string, unable to parse JSON from "+query_result
         return ('','') #not sure what to return yet if problem occurs TODO 
     return output
 
 def do_inference(con,userid):
     cur = con.cursor()
     results = cur.execute('SELECT dataset, dataitem, detail, answer FROM qa WHERE userid=? AND asked_last=0;',(userid,)); #asked_last=0 -> don't want datasets without answers.
-    data = []
+    answers = []
     for it in results:
-        data.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
+        answers.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
+    facts = {}
+    data = {'answers':answers,'facts':{}}
     res = query_api('inference',data)
     try:
         output = json.loads(res)
     except ValueError:
         import sys
-        print >>sys.stderr, "Unable to parse JSON from "+res
+        print >>sys.stderr, "While performing inference, unable to parse JSON from "+res
         return ([],[],[])
 
     features = output['features']
@@ -52,15 +54,19 @@ def do_inference(con,userid):
 def pick_question(con,userid):
     cur = con.cursor()
     results = cur.execute('SELECT dataset, dataitem, detail, answer FROM qa WHERE userid=? AND asked_last=0;',(userid,)); #asked_last=0 -> don't want datasets without answers.
-    data = []
+    data = {}
+    prev_questions = []
     for it in results:
-        data.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
+        prev_questions.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
+
+    data = {'previous_questions':prev_questions}
+
     res = query_api('question',data)
     try:
         question = json.loads(res)
     except ValueError:
         import sys
-        print >>sys.stderr, "Unable to parse JSON from "+res
+        print >>sys.stderr, "While picking question, unable to parse JSON from "+res
         return {'dataset':None,'dataitem':None,'detail':None,'answer':None}
 
     return question
