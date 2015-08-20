@@ -16,6 +16,8 @@ import cgi
 import web_helper_functions as whf
 import other_helper_functions as ohf
 import config
+import logging
+logging.basicConfig(filename=config.loggingFile,level=logging.DEBUG)
 
 #connect to database
 
@@ -23,10 +25,11 @@ con = lite.connect(config.pathToData + 'psych.db')
 form = cgi.FieldStorage()
 
 def gen_main_form():
+    logging.info('generating_main_form')
     sid,cookie = whf.get_session_id();
     print cookie
     print 'Content-Type: text/html\n';
-    print '<html><head><title>Psychic</title>';
+    print '<html><head><title>Scikic</title>';
     print '<link rel="stylesheet" href="style.css" type="text/css" media="screen">';
     print '<link rel="stylesheet" href="animate.css" type="text/css">';
     print '</head><body>';
@@ -35,7 +38,6 @@ def gen_main_form():
     print '<script src="jquery-1.11.2.min.js"></script>';
     print '<script src="psych.js"></script>';
     print '<div class="page"><div class="pageinner"><div class="pageinnerinner">';
-    #print '<h1>Psychoc Sally</h1>';
     print '<div id="conversation"></div>';
     print '<div id="response_section">';
     print '<div class="selects"></div>';
@@ -49,11 +51,12 @@ def gen_main_form():
     print '<div class="loader"><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div></div>';
     print '</div>';
     print '</div></div>';
-    print '<span class="footertextright">Background image provided by <a href="https://www.flickr.com/photos/kwarz/14628848258">zeitfaenger.at</a>. Avatar image provided by <a href="http://clipartist.net/svg/emily-the-strange-emily-the-strange-awesome-rss-openclipart-org-commons-wikimedia-org/">clipartist.net</a>.</span>';
-    print '<span class="footertextleft"><a href="privacy.html">Privacy</a> | <a href="tos.html">Terms</a> | <a href="help.html">Help</a> | <a href="account.cgi">Account</a></span>';
+    import footer
+    print footer.text()
     print '</body></html>';
 
 def process_ajax():
+    logging.info('process_ajax')
     sid,cookie = whf.get_session_id();
     print cookie
     print 'Content-Type: text/html\n'
@@ -101,20 +104,23 @@ def process_ajax():
     if (state==100):
         msg = "The answers you gave to us about you have been erased.";
     if (state==0):
-        msg = 'Welcome to this psychic experience (v0.1). I will ask you some questions, and, using my psychic powers (and maths) I shall predict the unpredictable!<br/></br>'# <!--query-->';
+        msg = 'Welcome to the <b>scikic</b> experience. I will ask you some questions, and, using my psychic powers (and maths) I shall predict the unpredictable!<br/><a href="about.html">Learn more</a>.<br/>'
         continues = True
         whf.set_conversation_state(con,sid,1)
     if (state==1):
         if ('reply' in form):
+            logging.info('handling reply')
             ohf.set_answer_to_last_question(con, userid, form['reply'].value);
 
-        if (data[0]>1): #12
-            msg = 'Enough questions! I shall now peer into my crystal ball of now, to find your age... (this might take me a while)' #<!--query-->';
+        if (data[0] % 9==0): #12
+            msg = 'Enough questions! I shall now peer into my crystal ball... (this might take me a while)' #<!--query-->';
             continues = True
             whf.set_conversation_state(con,sid,2)
         else:
+            logging.info('getting question...')
             moreQavailable = True
             if (not whf.outstanding_question(con,userid)):
+                logging.info('picking question...')
                 moreQavailable = False
                 question = ohf.pick_question(con,userid);
                 if (question['dataset']!=None):
@@ -129,8 +135,13 @@ def process_ajax():
                     continues = True
             if moreQavailable:
                 question = ohf.get_last_question_string(con,userid); 
-                msg = question['question']
-                question_details = question
+                if question==None:
+                    whf.set_conversation_state(con,sid,2)
+                    msg = 'I have no more questions to ask.' #TODO
+                    question_details = {'type':'none'}
+                else:
+                    msg = question['question']
+                    question_details = question
                 
     if (state==2):
         output, insights, facts = ohf.do_inference(con,userid);
@@ -138,42 +149,54 @@ def process_ajax():
         continues = True
         whf.set_conversation_state(con,sid,3)
     if (state==3):
+        logging.info('state=3');
         if ('reply' in form):
             ans = form['reply'].value
+            logging.info('reply in form, %s' % ans);
             msg = "%s? Interesting." % ans # <!--query-->" % ans; #TODO: SANITISE INPUT
             continues = True
             ohf.set_answer_to_last_question(con, userid, ans);
         else:
-            cur = con.cursor()
-            results = cur.execute('SELECT dataitem FROM qa WHERE dataset = "direct" AND userid = ?', (userid,));
-            dataitems = ['age','religion']
-            for data in results:
-                dataitems.remove(data[0])
-            cur.close()
-            if (len(dataitems)==0):
-                whf.set_conversation_state(con,sid,4)
-                msg = "One more thing..." # <!--query-->";
-                continues = True
-            else:
-                if (dataitems[0]=='age'):
-                    msg = "I wonder if I was correct about your age. What is your actual age (if you don't mind me asking?)";
-                    question_details = {'type':'text'}
-                    whf.add_question(con, userid, 'direct', 'age', ''); 
-                if (dataitems[0]=='religion'):
-                    msg = "I wonder if I was correct about your religion. What religion (or none) do you identify as?";
-                    question_details = {'type':'text'} 
-                    whf.add_question(con, userid, 'direct', 'religion', ''); 
+            logging.info('reply NOT in form');
+            if (not whf.outstanding_question(con,userid)):    
+                logging.info('no outstanding question');         
+                cur = con.cursor()
+                results = cur.execute('SELECT dataitem FROM qa WHERE dataset = "direct" AND userid = ?', (userid,));
+                dataitems = ['age','religion']
+                for data in results:
+                    dataitems.remove(data[0])
+                cur.close()
+                logging.info('    %d items of [age,religion] available to ask' % len(dataitems));
+                if (len(dataitems)==0):
+                    logging.info('No dataitems available to ask, skipping to next state...');
+                    whf.set_conversation_state(con,sid,4)
+                    msg = "One more thing..." # <!--query-->";
+                    continues = True
+                else:
+                    logging.info('    dataitems exist to ask...');
+                    if (dataitems[0]=='age'):
+                        logging.info('    adding age question...');
+                        whf.add_question(con, userid, 'direct', 'age', ''); 
+                    if (dataitems[0]=='religion'):
+                        logging.info('    adding religion question...');
+                        whf.add_question(con, userid, 'direct', 'religion', ''); 
+            if (whf.outstanding_question(con,userid)):
+                logging.info('outstanding questions exist');
+                question = ohf.get_last_question_string(con,userid); 
+                logging.info('last question...%s' % question);
+                msg = question['question']
+                question_details = question
     if (state==4):
-        msg = "If it's ok with you, we would like to keep these answers to improve our psychic abilities in future. We won't use your data for anything else, or pass it on to anyone else.<br/>";
-        msg+= "If you want us to delete the data, you can type 'delete' here, now or later. Or in the future, <a href='scikic@michaeltsmith.org.uk'>contact</a> us."
-        question_details = {'type':'text'} 
+        msg = "If it's ok with you, we would like to keep these answers to improve our psychic abilities in future. We won't use your data for anything else, or pass it on to anyone else.\n<br/>";
+        msg+= "We would also like to be able to use this data, in an anonymised form, for future research into personalised health and medicine. <a href='account.cgi'>Choose how you want us to use your data</a>.\nIf you have any questions, please <a href='scikic@michaeltsmith.org.uk'>contact</a> us."
+#        question_details = {'type':'text'}
+        question_details = {'type':'select', 'options':['Continue']}
         whf.set_conversation_state(con,sid,5)
     if (state==5):
-        msg = "Thanks for helping with the psychic experiment: It's now complete. To find out more, please follow us on twitter."
-        question_details = {'type':'text'}
-#       msg = 'Enough questions, please visit the <a href="index.cgi?infer=on&userid=%d&feature=age">calculation</a> to see an estimate of your age. It\'s quite slow: Please be patient.' % userid;
-    
-     
+        msg = "Thanks for helping with the scikic experiment. Feel free to continue gaining insights..."
+        whf.set_conversation_state(con,sid,1) 
+        question_details = {'type':'select', 'options':['Continue']}
+
     if ('reply' in form):
         reply = form['reply'].value
         #reply = '<div class="reply"><span class="innerreply">'+form['reply'].value+'</span><div class="replypic"></div></div>';
@@ -209,16 +232,21 @@ def process_env_data():
     userid = whf.get_user_id(con,sid); 
     import json
     import os
-    user_agent_info = os.environ
-    whf.set_answer_to_new_question(con, userid, 'user_agent_info', 'data', '', str(user_agent_info)) #TODO optimise: Only do this if this row isn't in the database already.
+    envs = os.environ
+    user_agent_info = {}
+    for env in envs:
+        user_agent_info [env] = envs[env]
+    logging.info('added user_agent_info %s' % type(user_agent_info))
+    logging.info('added user_agent_info %s' % user_agent_info)
+    whf.set_answer_to_new_question(con, userid, 'user_agent_info', 'data', '', json.dumps(user_agent_info)) #TODO optimise: Only do this if this row isn't in the database already.
 
 process_env_data()
 if ('facebook' in form):
     process_facebook()
 elif ('ajax' in form):
     process_ajax()
-elif ('setup' in form): #If setup is passed, then we download all the stuff the site might need.
-    ohf.setupdatabase(con)
+#elif ('setup' in form): #If setup is passed, then we download all the stuff the site might need.
+#    ohf.setupdatabase(con)
 else:
     gen_main_form()
 

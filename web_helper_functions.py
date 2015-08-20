@@ -6,6 +6,10 @@ import pandas as pd
 import json
 import random
 
+import config
+import logging
+logging.basicConfig(filename=config.loggingFile,level=logging.DEBUG)
+
 def outstanding_question(con,userid):
     cur = con.cursor()
     cur.execute('SELECT COUNT(*) FROM qa WHERE userid=? AND asked_last=1;',(userid,));
@@ -27,7 +31,7 @@ def add_question(con,userid, dataset, dataitem, detail='',unanswered=1): #set un
    
     if (data[0]==0):
         cur = con.cursor()
-        cur.execute('INSERT OR IGNORE INTO qa (userid, dataset, dataitem, detail, asked_last) VALUES (?,?,?,?,?);',(userid,dataset,dataitem,detail,unanswered))
+        cur.execute('INSERT OR IGNORE INTO qa (userid, dataset, dataitem, detail, asked_last, processed) VALUES (?,?,?,?,?,0);',(userid,dataset,dataitem,detail,unanswered))
         cur.close()
         con.commit()
 
@@ -98,6 +102,6 @@ def set_answer_to_new_question(con,userid, dataset, dataitem, detail, answer):
     cur.execute('SELECT COUNT(*) FROM qa WHERE userid = ? AND dataset = ? AND dataitem = ? AND detail = ?', (userid,dataset,dataitem,detail,));
     data = cur.fetchone();
     if (data[0]==0):
-        cur.execute('INSERT OR REPLACE INTO qa (userid, dataset, dataitem, detail, answer, asked_last) VALUES (?,?,?,?,?,0);',(userid,dataset,dataitem,detail,answer))
+        cur.execute('INSERT OR REPLACE INTO qa (userid, dataset, dataitem, detail, answer, asked_last, processed) VALUES (?,?,?,?,?,0,0);',(userid,dataset,dataitem,detail,answer))
         cur.close()
         con.commit()

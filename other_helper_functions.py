@@ -1,5 +1,7 @@
 import web_helper_functions as whf
 import config
+import logging
+logging.basicConfig(filename=config.loggingFile,level=logging.DEBUG)
 
 def query_api(action,data):
     import requests    
@@ -14,7 +16,7 @@ def get_last_question_string(con,userid):
     data = cur.fetchone();
     cur.close()
     if (data==None): #we shouldn't get to this state... TODO Handle this better.
-        return "No more questions!";
+        return None #"No more questions!";
     dataset = data[0]
     dataitem = data[1]
     detail = data[2]    
@@ -25,7 +27,7 @@ def get_last_question_string(con,userid):
     except ValueError:
         import sys
         print >>sys.stderr, "While getting question string, unable to parse JSON from "+query_result
-        return ('','') #not sure what to return yet if problem occurs TODO 
+        return None # ('question':'no question','') #not sure what to return yet if problem occurs TODO 
     return output
 
 def do_inference(con,userid):
@@ -53,6 +55,47 @@ def do_inference(con,userid):
 
 def pick_question(con,userid):
     cur = con.cursor()
+    results = cur.execute('SELECT dataset, dataitem, detail, answer FROM qa WHERE userid=? AND asked_last=0 AND processed=0;',(userid,)); #asked_last=0 -> don't want datasets without answers. and don't want answers that have already been processed.
+    data = {}
+    prev_questions = []
+    for it in results:
+        logging.info('   adding question to list of questions already answered that haven\'t been put into facts: %s,%s,%s,%s' % (it[0],it[1],it[2],it[3]))
+        prev_questions.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
+
+    results = cur.execute('SELECT fact FROM facts WHERE userid=?;',(userid,)); 
+    row = results.fetchone()
+    if row!=None:
+        jsonfact = row[0]
+        try:          
+            fact = json.loads(jsonfact)
+        except ValueError:
+            import sys
+            print >>sys.stderr, "While picking question, unable to parse JSON from (fact) "+jsonfact
+            return {'dataset':None,'dataitem':None,'detail':None,'answer':None}
+    else:
+        fact = {}
+
+    data = {'previous_questions':prev_questions,'facts':fact}
+    
+    resjson = query_api('question',data)    
+
+    try:
+        logging.info('    processing...')
+        res = json.loads(resjson)
+        question = res['question']
+        fact = res['facts']
+        factjson = json.dumps(fact)
+        logging.info('    updating qa...')
+        cur.execute('UPDATE qa SET processed=1 WHERE userid=? AND asked_last=0 AND processed=0;',(userid,));
+        cur.execute('INSERT OR REPLACE INTO facts (fact, userid) VALUES (?,?);',(factjson,userid,));
+    except ValueError:
+        import sys
+        print >>sys.stderr, "While picking question, unable to parse JSON from "+resjson
+        return {'dataset':None,'dataitem':None,'detail':None,'answer':None}
+    return question
+
+'''def pick_question(con,userid):
+    cur = con.cursor()
     results = cur.execute('SELECT dataset, dataitem, detail, answer FROM qa WHERE userid=? AND asked_last=0;',(userid,)); #asked_last=0 -> don't want datasets without answers.
     data = {}
     prev_questions = []
@@ -68,8 +111,7 @@ def pick_question(con,userid):
         import sys
         print >>sys.stderr, "While picking question, unable to parse JSON from "+res
         return {'dataset':None,'dataitem':None,'detail':None,'answer':None}
-
-    return question
+    return question'''
 
 def delete_users_data(con,userid):
     cur = con.cursor()
@@ -86,9 +128,12 @@ def set_answer_to_last_question(con,userid, answer):
     #if sqldata is None: #silently fail to set the answer
     #    return
     cur.close()
+    if sqldata==None:
+        return #there is no question to assign an answer to, so we'll quietly return (chances are we displayed a 'continue' question, that doesn't really have a question assigned).
     data = {'dataset':sqldata[0],'dataitem':sqldata[1],'detail':sqldata[2],'answer':answer}
     data = json.loads(query_api('processanswer',data))
     cur = con.cursor()
     cur.execute('UPDATE qa SET answer = ?, detail = ?, asked_last = 0 WHERE userid = ? AND asked_last = 1;',(data['answer'],data['detail'],userid,)); 
     cur.close()
     con.commit()
+    return data
