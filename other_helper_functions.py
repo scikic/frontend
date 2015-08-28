@@ -55,12 +55,15 @@ def do_inference(con,userid):
 
 def pick_question(con,userid):
     cur = con.cursor()
-    results = cur.execute('SELECT dataset, dataitem, detail, answer FROM qa WHERE userid=? AND asked_last=0 AND processed=0;',(userid,)); #asked_last=0 -> don't want datasets without answers. and don't want answers that have already been processed.
+    results = cur.execute('SELECT dataset, dataitem, detail, answer, processed FROM qa WHERE userid=? AND asked_last=0;',(userid,)); #asked_last=0 -> don't want datasets without answers. and don't want answers that have already been processed.
     data = {}
     prev_questions = []
+    unprocessed_questions = []
     for it in results:
         logging.info('   adding question to list of questions already answered that haven\'t been put into facts: %s,%s,%s,%s' % (it[0],it[1],it[2],it[3]))
-        prev_questions.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
+        if it[4]==0: #it's not yet been processed
+            unprocessed_questions.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]}) #ones that need processing are added to this list
+        prev_questions.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]}) #all questions are added to this list
 
     results = cur.execute('SELECT fact FROM facts WHERE userid=?;',(userid,)); 
     row = results.fetchone()
@@ -75,7 +78,7 @@ def pick_question(con,userid):
     else:
         fact = {}
 
-    data = {'previous_questions':prev_questions,'facts':fact}
+    data = {'unprocessed_questions':unprocessed_questions,'previous_questions':prev_questions,'facts':fact}
     
     resjson = query_api('question',data)    
 
@@ -131,7 +134,7 @@ def set_answer_to_last_question(con,userid, answer):
     if sqldata==None:
         return #there is no question to assign an answer to, so we'll quietly return (chances are we displayed a 'continue' question, that doesn't really have a question assigned).
     data = {'dataset':sqldata[0],'dataitem':sqldata[1],'detail':sqldata[2],'answer':answer}
-    data = json.loads(query_api('processanswer',data))
+#    data = json.loads(query_api('processanswer',data)) #deprecated and now removed.
     cur = con.cursor()
     cur.execute('UPDATE qa SET answer = ?, detail = ?, asked_last = 0 WHERE userid = ? AND asked_last = 1;',(data['answer'],data['detail'],userid,)); 
     cur.close()
