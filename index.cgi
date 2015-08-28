@@ -119,7 +119,7 @@ def process_ajax():
         else:
             logging.info('getting question...')
             moreQavailable = True
-            if (not whf.outstanding_question(con,userid)):
+            if (not whf.outstanding_question(con,userid)): #is there isn't a question we're awaiting an answer to...
                 logging.info('picking question...')
                 moreQavailable = False
                 question = ohf.pick_question(con,userid);
@@ -128,12 +128,12 @@ def process_ajax():
                     whf.add_question(con, userid, question['dataset'], question['dataitem'], question['detail']);
                 else:
                     #not found any new questions. TODO: We shouldn't really get into this situation, as we should
-                    #have more questions always available. However, if we do; set conversation to state=1, to reveal what
+                    #have more questions always available. However, if we do; set conversation to state=2, to reveal what
                     #we know.
                     whf.set_conversation_state(con,sid,2)
                     msg = "I've no more questions to ask!";
                     continues = True
-            if moreQavailable:
+            if moreQavailable: #if there is (supposed) to be a question that we've not yet answered...
                 question = ohf.get_last_question_string(con,userid); 
                 if question==None:
                     whf.set_conversation_state(con,sid,2)
@@ -188,7 +188,7 @@ def process_ajax():
                 question_details = question
     if (state==4):
         msg = "If it's ok with you, we would like to keep these answers to improve our psychic abilities in future. We won't use your data for anything else, or pass it on to anyone else.\n<br/>";
-        msg+= "We would also like to be able to use this data, in an anonymised form, for future research into personalised health and medicine. <a href='account.cgi'>Choose how you want us to use your data</a>.\nIf you have any questions, please <a href='scikic@michaeltsmith.org.uk'>contact</a> us."
+        msg+= "We would also like to be able to use this data, in an anonymised form, for future research into personalised health and medicine. <a href='account.cgi'>Choose how you want us to use your data</a>.\nIf you have any questions, please <a href='mailto:scikic@michaeltsmith.org.uk'>contact</a> us."
 #        question_details = {'type':'text'}
         question_details = {'type':'select', 'options':['Continue']}
         whf.set_conversation_state(con,sid,5)
