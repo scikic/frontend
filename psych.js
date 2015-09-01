@@ -136,6 +136,7 @@ function trypaging(data) {
 
 $(document).ready(function() {
  replymsg();
+ $('button#skip').click(function() {$('input#chatbox').val("(question skipped)"); $("#reply").click();});
  $('button#reply').click(function() {replymsg();});
 //the 'enter' key would normally trigger a submit (if it existed). We're using AJAX and a button, so have to do this manually.
  $("#chatbox").keyup(function(event){
