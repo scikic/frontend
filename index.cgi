@@ -16,6 +16,8 @@ import cgi
 import web_helper_functions as whf
 import other_helper_functions as ohf
 import config
+import json
+
 import logging
 logging.basicConfig(filename=config.loggingFile,level=logging.DEBUG)
 
@@ -46,7 +48,9 @@ def gen_main_form():
     print '<script>if (!("autofocus" in document.createElement("input"))) {document.getElementById("chatbox").focus(); }</script>'; #does autofocus for old versions of IE.
     print '<button id="reply">Reply</button>';
     print '</span>'; #end of textbox
+    print '<div class="skipbuttondiv" alt="Skip Question: Click if you don\'t want to answer the question."><button id="skip">Skip</button></div>';
     print '</div>'; #end of "response_section"
+
     print '<br />';
     print '<div class="loader"><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div><div class="circle">&nbsp;</div></div>';
     print '</div>';
@@ -104,15 +108,24 @@ def process_ajax():
     if (state==100):
         msg = "The answers you gave to us about you have been erased.";
     if (state==0):
-        msg = 'Welcome to the <b>scikic</b> experience. I will ask you some questions, and, using my psychic powers (and maths) I shall predict the unpredictable!<br/><a href="about.html">Learn more</a>.<br/>'
-        continues = True
-        whf.set_conversation_state(con,sid,1)
+        if ('reply' not in form):
+            msg = 'Welcome to the <b>scikic</b> experience. I will ask you some questions, and, using my psychic powers (and maths) I shall predict the unpredictable!<br/><br /><a href="about.html">Learn more</a>. \n<br/><br /><b>The data you enter will be stored by the scikic to help improve it in future.</b><br />I may ask some personal questions. <br />You may choose not to answer some questions.<br /> If you want to erase your data from the scikic later, you can.<br /><br /><b>Do you want to continue?</b>'
+            continues = False
+            question_details = {'type':'select', 'options':['Yes','No']}
+        else:
+            if form['reply'].value.upper()=='YES':
+                msg = 'Thank you!<br/> Let the Scikic experience begin...'
+                continues = True
+                whf.set_conversation_state(con,sid,1)
+            else:
+                msg = 'Thank you for your interest in the Scikic. <br />Good bye.'
+                continues = False
     if (state==1):
         if ('reply' in form):
             logging.info('handling reply')
             ohf.set_answer_to_last_question(con, userid, form['reply'].value);
 
-        if (data[0] % 9==0): #12
+        if (data[0] % 6==0): #12
             msg = 'Enough questions! I shall now peer into my crystal ball... (this might take me a while)' #<!--query-->';
             continues = True
             whf.set_conversation_state(con,sid,2)
@@ -206,6 +219,8 @@ def process_ajax():
     print json.dumps(response)
 
 def process_facebook():
+    import sys
+    print >>sys.stderr, "Processing"
     if not whf.in_session():
         print 'Content-Type: text/html\n'
         print '<html><body>Cookie missing</body></html>'
@@ -214,13 +229,18 @@ def process_facebook():
     print cookie
     print 'Content-Type: text/html\n'
     print '<html><body>'    
-    userid = whf.get_user_id(con,sid); 
+    userid = whf.get_user_id(con,sid);
 #convert tricky cgi form into simple dictionary.
     data = {}
     for key in form:
         data[key] = form[key].value
+
+    #get their facebook id
+    fbdata = json.loads(data['reply'])
+    fbid = fbdata['id']
+    whf.set_facebook_id(con,userid,sid,fbid)
 #stick this in the database
-    import json
+
     whf.set_answer_to_new_question(con, userid, 'facebook', 'data', '', json.dumps(data)) #form['reply[birthday]'].value)
 
 

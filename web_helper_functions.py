@@ -56,8 +56,8 @@ def get_session_id():
         sid = sha.new(repr(time.time())).hexdigest()
         # Set the sid in the cookie
         cookie['sid'] = sid
-        # Will expire in a year
-        cookie['sid']['expires'] = 12 * 30 * 24 * 60 * 60
+        # Will expire in a week
+        cookie['sid']['expires'] = 7 * 24 * 60 * 60
     else:
         sid = cookie['sid'].value
     return sid, cookie
@@ -81,6 +81,21 @@ def get_user_id(con,sid):
 def set_conversation_state(con,sid,state):
     cur = con.cursor()
     cur.execute('INSERT OR REPLACE INTO conversation_state (state,sessionid) VALUES (?,?);',(state,sid));
+    cur.close()
+    con.commit()
+
+def set_facebook_id(con,userid,sid,fbid):
+    import sys
+    print >>sys.stderr, userid,sid,fbid
+    cur = con.cursor()
+    cur.execute('SELECT user FROM sessions WHERE facebookid = ?' , (fbid,));
+    data = cur.fetchone();
+    if (data==None):
+        cur.execute('UPDATE sessions SET facebookid=? WHERE sessionid = ?' , (fbid,sid,));
+    else:
+        uid = data[0]
+        cur.execute('DELETE FROM sessions WHERE user=?',(uid,));
+        cur.execute('UPDATE sessions SET facebookid=?, user=? WHERE sessionid = ?',(fbid,uid,sid,));
     cur.close()
     con.commit()
 
