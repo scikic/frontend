@@ -327,3 +327,17 @@ div#response_section {
     max-height: 140px;
     vertical-align: middle;
 }
+
+button#skip {
+    background-image: 	url(skip.png);
+	background-repeat:	no-repeat;
+	background-color:	transparent;
+	height:			36px;
+	width:			160px;
+	border:			none;
+	text-indent:		-999em;
+}
+
+div.skipbuttondiv {
+    text-align:right;
+}
