@@ -85,8 +85,8 @@ def set_conversation_state(con,sid,state):
     con.commit()
 
 def set_facebook_id(con,userid,sid,fbid):
-    import sys
-    print >>sys.stderr, userid,sid,fbid
+    return
+    #this function is currently broken and causes a security vulnerability.
     cur = con.cursor()
     cur.execute('SELECT user FROM sessions WHERE facebookid = ?' , (fbid,));
     data = cur.fetchone();
