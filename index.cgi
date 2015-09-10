@@ -32,8 +32,15 @@ def gen_main_form():
     print cookie
     print 'Content-Type: text/html\n';
     print '<html><head><title>Scikic</title>';
+    print '<meta property="og:url"           content="https://www.scikic.org" />';
+    print '<meta property="og:type"          content="website" />';
+    print '<meta property="og:title"         content="Scikic" />';
+    print '<meta property="og:description"   content="Welcome to the scikic experience. I will ask you some questions, and, using my psychic powers (and maths) I shall predict the unpredictable!" />';
+    print '<meta property="og:image"         content="http://www.scikic.org/scikic/avatar_small.png" />';
+
     print '<link rel="stylesheet" href="style.css" type="text/css" media="screen">';
     print '<link rel="stylesheet" href="animate.css" type="text/css">';
+    print '<meta name=viewport content="width=500">';
     print '</head><body>';
 
 
@@ -57,7 +64,7 @@ def gen_main_form():
     print '</div></div>';
     import footer
     print footer.text()
-    print '</body></html>';
+    print '</body></html>',
 
 def process_ajax():
     logging.info('process_ajax')
@@ -125,7 +132,7 @@ def process_ajax():
             logging.info('handling reply')
             ohf.set_answer_to_last_question(con, userid, form['reply'].value);
 
-        if (data[0] % 6==0): #12
+        if (data[0] % 9==0): #12
             msg = 'Enough questions! I shall now peer into my crystal ball... (this might take me a while)' #<!--query-->';
             continues = True
             whf.set_conversation_state(con,sid,2)
@@ -175,7 +182,7 @@ def process_ajax():
                 logging.info('no outstanding question');         
                 cur = con.cursor()
                 results = cur.execute('SELECT dataitem FROM qa WHERE dataset = "direct" AND userid = ?', (userid,));
-                dataitems = ['age','religion']
+                dataitems = ['age'] #,'religion'] #Disabled religion question (can't collect this!)
                 for data in results:
                     dataitems.remove(data[0])
                 cur.close()
@@ -206,7 +213,7 @@ def process_ajax():
         question_details = {'type':'select', 'options':['Continue']}
         whf.set_conversation_state(con,sid,5)
     if (state==5):
-        msg = "Thanks for helping with the scikic experiment. Feel free to continue gaining insights..."
+        msg = 'Thanks for helping with the scikic experiment. Feel free to <a href="#"><span class="fbshare">share on facebook</span></a> and continue gaining insights...'
         whf.set_conversation_state(con,sid,1) 
         question_details = {'type':'select', 'options':['Continue']}
 
@@ -219,8 +226,6 @@ def process_ajax():
     print json.dumps(response)
 
 def process_facebook():
-    import sys
-    print >>sys.stderr, "Processing"
     if not whf.in_session():
         print 'Content-Type: text/html\n'
         print '<html><body>Cookie missing</body></html>'
@@ -242,7 +247,6 @@ def process_facebook():
 #stick this in the database
 
     whf.set_answer_to_new_question(con, userid, 'facebook', 'data', '', json.dumps(data)) #form['reply[birthday]'].value)
-
 
 def process_env_data():
     sid,cookie = whf.get_session_id()
