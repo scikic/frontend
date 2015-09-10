@@ -31,13 +31,7 @@ def get_last_question_string(con,userid):
     return output
 
 def do_inference(con,userid):
-    cur = con.cursor()
-    results = cur.execute('SELECT dataset, dataitem, detail, answer FROM qa WHERE userid=? AND asked_last=0;',(userid,)); #asked_last=0 -> don't want datasets without answers.
-    answers = []
-    for it in results:
-        answers.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
-    facts = {}
-    data = {'answers':answers,'facts':{}}
+    data = get_data_structure(con,userid)
     res = query_api('inference',data)
     try:
         output = json.loads(res)
@@ -52,36 +46,39 @@ def do_inference(con,userid):
 
     return features, insights, facts
 
-
-def pick_question(con,userid):
+def get_data_structure(con,userid):
     cur = con.cursor()
     results = cur.execute('SELECT dataset, dataitem, detail, answer, processed FROM qa WHERE userid=? AND asked_last=0;',(userid,)); #asked_last=0 -> don't want datasets without answers. and don't want answers that have already been processed.
     data = {}
-    prev_questions = []
+    questions_asked = []
     unprocessed_questions = []
     for it in results:
         logging.info('   adding question to list of questions already answered that haven\'t been put into facts: %s,%s,%s,%s' % (it[0],it[1],it[2],it[3]))
         if it[4]==0: #it's not yet been processed
             unprocessed_questions.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]}) #ones that need processing are added to this list
-        prev_questions.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]}) #all questions are added to this list
+        questions_asked.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]}) #all questions are added to this list
 
     results = cur.execute('SELECT fact FROM facts WHERE userid=?;',(userid,)); 
     row = results.fetchone()
     if row!=None:
         jsonfact = row[0]
         try:          
-            fact = json.loads(jsonfact)
+            facts = json.loads(jsonfact)
         except ValueError:
             import sys
             print >>sys.stderr, "While picking question, unable to parse JSON from (fact) "+jsonfact
             return {'dataset':None,'dataitem':None,'detail':None,'answer':None}
     else:
-        fact = {}
+        facts = {}
 
-    data = {'unprocessed_questions':unprocessed_questions,'previous_questions':prev_questions,'facts':fact}
-    
+    data = {'unprocessed_questions':unprocessed_questions,'questions_asked':questions_asked,'facts':facts}
+    cur.close()
+    return data
+
+def pick_question(con,userid):
+    data = get_data_structure(con,userid)
     resjson = query_api('question',data)    
-
+    cur = con.cursor()
     try:
         logging.info('    processing...')
         res = json.loads(resjson)
@@ -96,25 +93,6 @@ def pick_question(con,userid):
         print >>sys.stderr, "While picking question, unable to parse JSON from "+resjson
         return {'dataset':None,'dataitem':None,'detail':None,'answer':None}
     return question
-
-'''def pick_question(con,userid):
-    cur = con.cursor()
-    results = cur.execute('SELECT dataset, dataitem, detail, answer FROM qa WHERE userid=? AND asked_last=0;',(userid,)); #asked_last=0 -> don't want datasets without answers.
-    data = {}
-    prev_questions = []
-    for it in results:
-        prev_questions.append({'dataset':it[0],'dataitem':it[1],'detail':it[2],'answer':it[3]})
-
-    data = {'previous_questions':prev_questions}
-
-    res = query_api('question',data)
-    try:
-        question = json.loads(res)
-    except ValueError:
-        import sys
-        print >>sys.stderr, "While picking question, unable to parse JSON from "+res
-        return {'dataset':None,'dataitem':None,'detail':None,'answer':None}
-    return question'''
 
 def delete_users_data(con,userid):
     cur = con.cursor()
