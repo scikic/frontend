@@ -154,6 +154,13 @@ $(document).ready(function() {
     $('input#chatbox').val(msg);
     $("#reply").click();
   });
+
+  $('body').on('click','span.fbshare',function() {
+    FB.ui({
+      method: 'share',
+      href: 'https://www.scikic.org',
+    }, function(response){});
+  });
 });
 
 
@@ -218,3 +225,4 @@ window.fbAsyncInit = function() {
    }(document, 'script', 'facebook-jssdk'));
 /*--------------------------------------*/
 });
+
