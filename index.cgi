@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 
 #TODO: Figure out which modules are needed!
-
-#TODO: Find out why these have to be before pymc to avoid "OSError: Could not find library c or load any of its variants []" error.
-from shapely.geometry import Point
-from shapely.geometry import Polygon
-
 import sha, time, Cookie, os
 import sqlite3 as lite
 import uuid
