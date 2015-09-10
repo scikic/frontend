@@ -13,7 +13,7 @@ sudo service apache2 restart
 mkdir ~/public_html
 chmod 775 public_html
 cd ~/public_html
-git clone https://github.com/scikic/scikic.git
+git clone https://github.com/scikic/frontend.git
 
 #add ~/public_html to configuration
 sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.backup
@@ -38,33 +38,34 @@ cd ~
 wget https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.rackcdn.com/Anaconda-2.2.0-Linux-x86_64.sh
 bash Anaconda-2.2.0-Linux-x86_64.sh
 
-#install conda modules
-conda install -y -c pymc pymc
-conda install -y -c https://conda.binstar.org/jjhelmus pyproj
-pip install overpy
-pip install pyshp
-sudo apt-get -y update
-sudo apt-get -y install libgeos-dev
-conda install -y geos
-conda install -y shapely
+#install conda modules (we don't need these for the frontend)
+#conda install -y -c pymc pymc
+#conda install -y -c https://conda.binstar.org/jjhelmus pyproj
+#pip install overpy
+#pip install pyshp
+#sudo apt-get -y update
+#sudo apt-get -y install libgeos-dev
+#conda install -y geos
+#conda install -y shapely
 
 #ensure location is available for data
-sudo mkfs -t ext4 /dev/xvdf
-sudo mkdir /mnt/api-data
-sudo mount /dev/xvdf /mnt/api-data/
+#you might need to change the name of the device, check by running lsblk
+sudo mkfs -t ext4 /dev/xvdb
+sudo mkdir /mnt/frontend-data
+sudo mount /dev/xvdb /mnt/frontend-data
 
 #create a folder for the inference system's files to go [IN FUTURE WE NEED TO USE AN AWS DATABASE SOLUTION?]
-cd /mnt/api-data
-sudo mkdir api_data
-(alter config.py to point at this location if necessary)
+cd /mnt/frontend-data
+sudo mkdir frontend_data
+#(alter config.py to point at this location if necessary)
 
 #Make database folder writable for apache:
-sudo chmod 777 api_data
-touch api_data/logging.log
-sudo chmod 666 api_data/logging.log
+sudo chmod 777 frontend_data
+touch frontend_data/logging.log
+sudo chmod 666 frontend_data/logging.log
 
 #initialise the database (this will take a LONG time)
-cd ~/public_html/scikic
+cd ~/public_html/frontend
 python setup.py
 
 #Setup ssl - not required for backend servers (SSL stops at the load balancer)
@@ -74,5 +75,4 @@ python setup.py
 
 #set enviornment vars for apache user, so that it knows where the anaconda version of things is
 sudo sed -i '$aexport PATH=/home/ubuntu/anaconda/bin:$PATH' /etc/apache2/envvars
-sudo sed -i '$aexport NLTK_DATA=/home/ubuntu/api_data/nltk_data' /etc/apache2/envvars
 sudo service apache2 restart
