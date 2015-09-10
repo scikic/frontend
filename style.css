@@ -7,6 +7,8 @@ p {
     color: #fff;
 }
 
+//Note to self: minimum width is about 500px wide
+
 p.blurb {
    // font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
@@ -14,7 +16,6 @@ p.blurb {
     padding: 0;
     font-size: 10pt;
 }
-@media only screen and (max-device-width: 480px) { p.blurb { font-size: 30px; } }
 
 h1 {
     font-size: 15pt;
@@ -23,7 +24,6 @@ h1 {
     margin-left: 50px;
     color: #fff;
 }
-@media only screen and (max-device-width: 480px) { h1 { font-size: 60px; } }
 
 h3 {
     font-size: 12   pt;
@@ -33,7 +33,6 @@ h3 {
     padding: 0;
     color: #fff;
 }
-@media only screen and (max-device-width: 480px) { h3 { font-size: 40px; } }
 
 h2 {
     font-size: 14pt;
@@ -43,7 +42,6 @@ h2 {
     padding: 0;
     color: #fff;
 }
-@media only screen and (max-device-width: 480px) { h2 { font-size: 50px; } }
 
 img.tile {
   width:  auto;
@@ -57,7 +55,6 @@ div.formdata {
  left:10px;
  width:450px;
 }
-@media only screen and (max-device-width: 480px) { div.formdata { width: 200px; } }
 
 div#conversation {
   font-family: "Lato",serif
@@ -96,6 +93,7 @@ body {
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
+// overflow:hidden;
 }
 
 div.replypic {
@@ -115,7 +113,7 @@ color: #cdf;
 background-repeat: no-repeat;
 background-position: right;
 min-height: 40px;
-//padding-right: 50px;
+padding-right: 50px;
 padding-top: 8px;
 margin-top: 0px;
 margin-bottom: 0px;
@@ -127,6 +125,7 @@ input { margin-left: 50px; margin-top: 15px; }
 div.page {
     display: table;
  width:470px; height:50%; margin-left: auto; margin-right: auto;
+ margin-bottom: 0px;
 }
 
 
@@ -144,20 +143,13 @@ div.pageinnerinner {
  vertical-align:bottom;
  width:470px;
 }
-@media only screen and (max-device-width: 480px) {
-div.pageinnerinner {
- position:absolute;
- bottom:0px;
- overflow:hidden;
- vertical-align:bottom;
- width:100%;
-}
-div.page { width:100% }
-}
 
 input#chatbox {
   background: transparent;
   color: #fff;
+  border-width: 5px;
+  border-color: #ffffff;
+  border-style: solid;
 }
 
 span.textbox {
@@ -221,7 +213,7 @@ div.option {
 }
 
 table {
-    margin: 20px;
+    margin: 0px; //20px;
     border-collapse: collapse;
     background-color:rgba(255,255,255,0.2);
 }
@@ -266,7 +258,8 @@ dd {
 
 span.headerlogoright {
     position: fixed;
-    top: 5px;
+    bottom: 5px;
+   // top: 5px;
     right: 5px;
     //font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     margin: 0;
@@ -274,6 +267,11 @@ span.headerlogoright {
     padding: 0;
     font-size: 12px;
     color: #fff;
+    max-width: 15%;
+}
+
+img.logo {
+    width: 100%;
 }
 
 
@@ -288,7 +286,6 @@ span.footertextright {
     font-size: 12px;
     color: #fff;
 }
-@media only screen and (max-device-width: 480px) { span.footertextright { font-size: 30px; } }
 
 span.footertextleft {
     position: fixed;
@@ -302,7 +299,6 @@ span.footertextleft {
     color: #fff;
 }
 
-@media only screen and (max-device-width: 480px) { span.footertextleft { font-size: 30px; } }
 
 button.choice {
     opacity: 0.5;
@@ -318,16 +314,15 @@ button.choice:hover {
 
 div.selects {
     width:100%;
-  //  margin: 20px;
+    margin: 20px;
     text-align: center;
 }
 
 div#response_section {
-    height: 140px;
-    max-height: 140px;
+    height: 170px;
+    max-height: 170px;
     vertical-align: middle;
 }
-
 button#skip {
     background-image: 	url(skip.png);
 	background-repeat:	no-repeat;
@@ -335,9 +330,37 @@ button#skip {
 	height:			36px;
 	width:			160px;
 	border:			none;
+    margin:         20px;
 	text-indent:		-999em;
+    cursor: pointer;
+}
+@media only screen and (max-device-width: 480px) { 
+button { min-width: 90px; min-height:40px; } 
+input {min-height: 30px; }
+}
+
+
+@media only screen and (max-device-width: 480px) {
+div.pageinnerinner {
+ position:absolute;
+ bottom:10px;
+// height:200px;
+ overflow:hidden;
+ vertical-align:bottom;
+ width:470px;
+ /*position:absolute;
+ bottom:30px;
+ overflow:hidden;
+ vertical-align:bottom;
+ border:0px;
+ margin:0px;
+ width:100%;*/
+}
+div.page { width:100% }
 }
 
 div.skipbuttondiv {
-    text-align:right;
+   // text-align:right;
 }
+
+//*{ border: 1px solid red; }
