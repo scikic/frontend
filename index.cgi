@@ -45,6 +45,7 @@ def gen_main_form():
     print '<div id="conversation"></div>';
     print '<div id="response_section">';
     print '<div class="selects"></div>';
+    print '<div class="multiselects"></div>';
     print '<span class="textbox">';
     print '<input type="text" id="chatbox" size="27" autofocus />';
     print '<script>if (!("autofocus" in document.createElement("input"))) {document.getElementById("chatbox").focus(); }</script>'; #does autofocus for old versions of IE.
@@ -114,6 +115,7 @@ def process_ajax():
             msg = 'Welcome to the <b>scikic</b> experience. I will ask you some questions, and, using my psychic powers (and maths) I shall predict the unpredictable!<br/><br /><a href="about.html">Learn more</a>. \n<br/><br /><b>The data you enter will be stored by the scikic to help improve it in future.</b><br />I may ask some personal questions. <br />You may choose not to answer some questions.<br /> If you want to erase your data from the scikic later, you can.<br /><br /><b>Do you want to continue?</b>'
             continues = False
             question_details = {'type':'select', 'options':['Yes','No']}
+#            question_details = {'type':'multiselect', 'options':['Yes','No']}
         else:
             if form['reply'].value.upper()=='YES':
                 msg = 'Thank you!<br/> Let the Scikic experience begin...'
@@ -161,6 +163,12 @@ def process_ajax():
     if (state==2):
         output, insights, facts = ohf.do_inference(con,userid);
         msg = '<br/>'.join(insights)
+        #continues = True
+        whf.set_conversation_state(con,sid,2.5)
+        continues = False
+        question_details = {'type':'select', 'options':['Continue']}
+    if (state==2.5):
+        msg = 'You were very difficult to read...'
         continues = True
         whf.set_conversation_state(con,sid,3)
     if (state==3):
