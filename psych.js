@@ -33,6 +33,7 @@ function replymsg() {
    }
    $('span.textbox').fadeTo('slow', 0);//.hide();
    $('div.selects').fadeTo('slow', 0); //.hide();
+   $('div.multiselects').fadeTo('slow', 0); //.hide();
    timer = setInterval(add_thinking_message, 5000);
     $('div.loader').fadeTo('slow', 1);
     $.ajax({
@@ -53,22 +54,37 @@ function replymsg() {
         console.log('NONE');
         $('span.textbox').fadeTo('slow', 0);//.hide();
         $('div.selects').fadeTo('slow', 0); //.hide();
+        $('div.multiselects').fadeTo('slow', 0); //.hide();
       }
       if (type=='text')
       {
         console.log('TEXT');
         $('span.textbox').fadeTo('slow', 1); //.show();
         $('div.selects').fadeTo('slow', 0);//.hide();
+        $('div.multiselects').fadeTo('slow', 0); //.show();
       }
       if (type=='select')
       {
         console.log('SELECT')
         $('span.textbox').fadeTo('slow', 0); //.hide();
+        $('div.multiselects').fadeTo('slow', 0); //.show();
         opts = data['details']['options'];
         for (i=0;i<opts.length;i++) {
           $('div.selects').append('<button class="choice">'+opts[i]+'</button>');
         }
         $('div.selects').fadeTo('slow', 1); //.show();
+      }
+      if (type=='multiselect')
+      {
+        console.log('MULTISELECT')
+        $('span.textbox').fadeTo('slow', 0);
+        $('div.selects').fadeTo('slow', 0); //.show();
+        opts = data['details']['options'];
+        for (i=0;i<opts.length;i++) {
+          $('div.multiselects').append('<button class="multichoice">'+opts[i]+'</button>');
+        }
+        $('div.multiselects').append('<br /><button class="multidone">done</button>');
+        $('div.multiselects').fadeTo('slow', 1); //.show();
       }
       if (reply.length>0) {
      //     $('div#conversation').append('<div class="reply"><span class="innerreply">'+reply+'</span><div class="replypic"></div></div>');
@@ -161,6 +177,18 @@ $(document).ready(function() {
       href: 'https://www.scikic.org',
     }, function(response){});
   });
+
+  $("div.multiselects").on('click','button.multichoice',function() {
+    $(this).toggleClass('selected_multibutton')
+  });
+
+  $("div.multiselects").on('click','button.multidone',function() {
+    msg = '';
+    items = [];
+    $("div.multiselects").children('button.selected_multibutton').each(function() { items.push($(this).html());} );
+    $('input#chatbox').val(items.join()); //we'll send back a commar separated list of items that have been selected
+    $("#reply").click();
+  });
 });
 
 
@@ -190,7 +218,7 @@ window.fbAsyncInit = function() {
                   }
 	    		});
 //unclear if we need summary=true
-			FB.api('/me?fields=id,bio,email,first_name,gender,last_name,link,locale,name,timezone,updated_time,verified,birthday,likes', function(data) {
+			FB.api('/me?fields=id,bio,email,first_name,gender,last_name,link,locale,name,timezone,updated_time,verified,likes', function(data) {
               //      console.log('Trying to get data');  
               //      console.log(JSON.stringify(data));
                     trypaging(data)
@@ -211,7 +239,7 @@ window.fbAsyncInit = function() {
 	    	// Otherwise, show Login dialog first.
 		  	FB.login(function(response) {
 		 		onLogin(response);
-		 	}, {scope: 'user_birthday, user_likes'}); //{scope: 'user_friends, email, user_birthday, user_about_me, user_likes, user_photos'});
+		 	}, {scope: 'user_likes'}); //{scope: 'user_friends, email, user_birthday, user_about_me, user_likes, user_photos'});
 		}
 	});
   };
