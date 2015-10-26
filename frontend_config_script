@@ -69,9 +69,14 @@ cd ~/public_html/frontend
 python setup.py
 
 #Setup ssl - not required for backend servers (SSL stops at the load balancer)
-#sudo a2enmod ssl
-#sudo a2ensite default-ssl
-#sudo service apache2 restart
+sudo a2enmod ssl
+sudo a2ensite default-ssl
+sudo service apache2 restart
+
+sudo cp /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl.backup
+sudo sed -e'/^<\/VirtualHost>/i \    <Directory \/home\/*\/public_html>\n    Options ExecCGI\n    AddHandler cgi-script .cgi\n    </Directory>' /etc/apache2/sites-available/default-ssl.conf > /tmp/default-ssl.conf
+sudo sed 's/^\s*SSLCertificateFile.*/SSLCertificateFile      \/etc\/ssl\/certs\/scikic_org.crt\//' /etc/apache2/sites-available/default-ssl.conf > /tmp/test.conf
+sudo cp /tmp/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
 
 #set enviornment vars for apache user, so that it knows where the anaconda version of things is
 sudo sed -i '$aexport PATH=/home/ubuntu/anaconda/bin:$PATH' /etc/apache2/envvars
