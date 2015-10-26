@@ -56,15 +56,17 @@ def make_table(table):
 
 def gen_main_page(con, userid):
     res = ''
+    res+= '<script src="jquery-1.11.2.min.js"></script>';
+    res+= '<script src="account.js"></script>';
     res+= '<h1>Scikic: Account</h1>'
     res+= '<div style="width:50%; margin-left:25%; margin-right:25%;">'
     res+= '<h2>Information you\'ve provided</h2>'
     res+= '<p>'
-    res+= 'Below is a table of the information you have provided (currently displayed in "raw" form) or information that your browser made available:'
+    res+= 'Below is a table of the information you have provided (currently displayed in "raw" form) or information that your browser made available:<br/></p>'
     res+= make_table(get_user_answers(con,userid))
-    res+= '</p><br />'
+    res+= '<br />'
     res+= '<h2>Control over this information</h2>'
-    res+= '<p>After you have finished with the scikic what will happen to your data?'
+    res+= '<p>Click on the option below to control what will happen to your data:</p>'
     res+= '<div width="100%">';
     policy = get_user_policy(con, userid)
     optionnumbers = [1,0,2]
@@ -75,13 +77,13 @@ def gen_main_page(con, userid):
             classtext = ' selected'
         
         res+= '<div class="option%s" id="opt_%d"><img src="opt%d.png"><br /><span class="option">%s</span></div>' % ( classtext, n, n, text)
-    print '<script src="jquery-1.11.2.min.js"></script>';
-    print '<script src="account.js"></script>';
     res+= '</table>';
-    res += '</p>';
 
+    res += '</p><br clear="both"><div style="width:60%; height:30px; left:20%; position:relative;"><p><span class="clickfeedback">Select how your data should be used</span></p></div>';
     res += '<h2>Future Control</h2>'
-    res += '<p>If in the future you want to change this choice, you may need to <a href="login.html">log in</a>. You can do that with this password:</p>'
+    res += '<p>If in a few weeks you change your mind you may need to <a href="mailto:scikic@michaeltsmith.org.uk">contact us</a>. Soon this will not be necessary, and you will be able to change the usage by logging in via facebook.<br/> </p>';
+#    res += '<h2>Future Control</h2>'
+#    res += '<p>If in the future you want to change this choice, you may need to <a href="login.html">log in</a>. You can do that with this password:</p>'
     return res
 
 
