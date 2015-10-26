@@ -4,7 +4,7 @@ p {
     margin: 0;
     margin-bottom: 20px;
     padding: 0;
-    color: #fff;
+    color: #000;
 }
 
 //Note to self: minimum width is about 500px wide
@@ -22,7 +22,7 @@ h1 {
  //  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     margin-left: 50px;
-    color: #fff;
+    color: #333;
 }
 
 h3 {
@@ -31,7 +31,7 @@ h3 {
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     margin: 15px;
     padding: 0;
-    color: #fff;
+    color: #555;
 }
 
 h2 {
@@ -40,7 +40,7 @@ h2 {
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     margin: 15px;
     padding: 0;
-    color: #fff;
+    color: #666;
 }
 
 img.tile {
@@ -61,7 +61,7 @@ div#conversation {
 }
 
 div.msg { 
-color: #eee; 
+color: #444; 
 background-image: url("avatar_small.png");
 background-repeat: no-repeat;
 min-height: 40px;
@@ -88,7 +88,7 @@ vertical-align: top;
 }
 
 body {
-  background: url("background.jpg") no-repeat center center fixed; 
+  background: url("lightbackground.jpg") no-repeat center center fixed; 
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -97,7 +97,7 @@ body {
 }
 
 div.replypic {
-color: #cdf; 
+color: #234; 
 background-repeat: no-repeat;
 background-position: right;
 margin-top: 0px;
@@ -109,7 +109,7 @@ border-radius:50px;
 }
 
 div.reply { 
-color: #cdf; 
+color: #764; 
 background-repeat: no-repeat;
 background-position: right;
 min-height: 40px;
@@ -146,9 +146,9 @@ div.pageinnerinner {
 
 input#chatbox {
   background: transparent;
-  color: #fff;
-  border-width: 5px;
-  border-color: #ffffff;
+  color: #000;
+  border-width: 2px;
+  border-color: #000;
   border-style: solid;
 }
 
@@ -157,29 +157,29 @@ span.textbox {
 }
 
 button#reply {
-  opacity: 0.5;
+  opacity: 0.9;
 }
 
 div.statement {
   margin: 20px;
-  border: 5px solid #aaa;
+  border: 2px solid #aaa;
   padding: 5px;
-  color: #eee;
+  color: #222;
   background: #444;
   opacity: 0.7;
 }
 
 
 a:hover {
- color: #fff;
+ color: #000;
 }
 
 a {
- color: #ddd;
+ color: #333;
 }
 
 span.statement_title {
- color: #fff;
+ color: #000;
  opacity: 1.0;
  font-weight: bold;
 }
@@ -192,13 +192,13 @@ span.option {
 }
 
 div.selected {
-    background-color: rgba(255,255,255,0.3);
+    background-color: rgba(0,0,0,0.3);
 }
 
 div.option:hover {
-    background-color: rgba(255,255,255,0.6);
+    background-color: rgba(0,0,0,0.6);
     cursor: pointer;
-    color: #000;
+    color: #fff;
 }
 
 div.option {
@@ -208,14 +208,14 @@ div.option {
     text-align: center;
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     padding: 5px;
-    color: #fff;
+    color: #000;
     font-weight: bold;
 }
 
 table {
     margin: 0px; //20px;
     border-collapse: collapse;
-    background-color:rgba(255,255,255,0.2);
+    background-color:rgba(0,0,0,0.2);
 }
 
 table, th, td {
@@ -226,7 +226,7 @@ th {
    // font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     padding: 5px;
-    color: #fff;
+    color: #000;
     font-weight: bold;
 }
 
@@ -234,16 +234,16 @@ td {
    // font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     padding: 5px;
-    color: #ccc;
+    color: #333;
 }
 
 dt {
    // font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     margin: 0;
-    margin-bottom: 20px;
+    margin-bottom: 0px;
     padding: 0;
-    color: #fff;
+    color: #000;
     font-weight: bold;
 }
 
@@ -253,7 +253,7 @@ dd {
     margin: 0;
     margin-bottom: 20px;
     padding: 0;
-    color: #fff;
+    color: #000;
 }
 
 span.headerlogoright {
@@ -266,7 +266,7 @@ span.headerlogoright {
     margin-bottom: 0px;
     padding: 0;
     font-size: 12px;
-    color: #fff;
+    color: #000;
     max-width: 15%;
 }
 
@@ -284,7 +284,7 @@ span.footertextright {
     margin-bottom: 0px;
     padding: 0;
     font-size: 12px;
-    color: #fff;
+    color: #000;
 }
 
 span.footertextleft {
@@ -296,15 +296,25 @@ span.footertextleft {
     margin-bottom: 0px;
     padding: 0;
     font-size: 12px;
-    color: #fff;
+    color: #000;
 }
 
+button.choice, button.multidone {
+    opacity: 0.7;
+    border: 1px solid black;
+    margin: 5px;
+}
 
-button.choice {
-    opacity: 0.5;
+button.multichoice {
+    opacity: 0.4;
     border: 1px solid white;
     margin: 5px;
-    
+}
+
+button.selected_multibutton {
+    border: 1px solid black;
+    opacity: 1.0;
+    background: #ccc;
 }
 
 button.choice:hover {
@@ -318,13 +328,19 @@ div.selects {
     text-align: center;
 }
 
+div.multiselects {
+    width:100%;
+    margin: 20px;
+    text-align: center;
+}
+
 div#response_section {
     height: 170px;
     max-height: 170px;
     vertical-align: middle;
 }
 button#skip {
-    background-image: 	url(skip.png);
+    background-image: 	url(blackskip.png);
 	background-repeat:	no-repeat;
 	background-color:	transparent;
 	height:			36px;
@@ -363,4 +379,11 @@ div.skipbuttondiv {
    // text-align:right;
 }
 
+span.clickfeedback {
+    position:absolute;
+    text-align: left;
+    vertical-align: left;
+    color:#333;
+    font-weight:bold;
+}
 //*{ border: 1px solid red; }
