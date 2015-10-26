@@ -5,6 +5,7 @@ function send(data) {
 	data: {reply:data}
     })
     .done(function( msg ) {
+        $('span.clickfeedback').fadeOut(function() {$(this).html('Selection updated').fadeIn(function() {$(this).delay(1000).fadeOut();}); });
       //nothing to do
     });
 }
